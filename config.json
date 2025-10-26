@@ -1,0 +1,23 @@
+{
+  "token": "process.env.DISCORD_TOKEN",
+  "prefix": "!",
+  "canais": {
+    "ranking": "1431389740736843857",
+    "resultado": "1431392854621552862",
+    "categoriaPrivadas": "1431389999999999999"
+  },
+  "metas": {
+    "Sub-líder": 500,
+    "Gerente": 1000,
+    "Membro": 1500
+  },
+  "cores": {
+    "ranking": "#FFD700",
+    "relatorio": "#00FF88",
+    "painel": "#00FFFF"
+  },
+  "cron": {
+    "rankingSemanal": "55 23 * * 0",
+    "resetSemanal": "0 0 * * 1"
+  }
+}

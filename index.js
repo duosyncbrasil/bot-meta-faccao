@@ -76,8 +76,8 @@ client.on("messageCreate", async (msg) => {
     });
   }
 
-  // !ranking
-  if (msg.content.startsWith("!ranking")) {
+  // !rank
+  if (msg.content.startsWith("!rank")) {
     enviarRanking(msg.channel);
   }
 
@@ -116,30 +116,143 @@ client.on("messageCreate", async (msg) => {
 });
 
 // BOTÃO: criar sala privada
+// BOTÃO: criar canal privado no final do servidor com apelido
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isButton() || interaction.customId !== "criar_sala") return;
 
   const guild = interaction.guild;
   const membro = interaction.member;
+  const nickname = membro.displayName || membro.user.username;
 
-  const categoria = guild.channels.cache.find(c => c.type === 4 && c.name.toLowerCase().includes("facção"));
-  const canal = await guild.channels.create({
-    name: `verificação-${membro.user.username}`,
-    type: 0,
-    parent: categoria?.id || null,
-    permissionOverwrites: [
-      { id: guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
-      { id: membro.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] },
-      { id: guild.roles.everyone, deny: [PermissionsBitField.Flags.ViewChannel] },
-      ...guild.roles.cache
-        .filter(r => r.permissions.has(PermissionsBitField.Flags.Administrator))
-        .map(r => ({ id: r.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] }))
-    ]
-  });
+  try {
+    const ultimaPosicao = guild.channels.cache.size;
 
-  await interaction.reply({ content: `✅ Sua sala foi criada: ${canal}`, ephemeral: true });
+    const canalPrivado = await guild.channels.create({
+      name: `privado-${nickname.toLowerCase().replace(/\s+/g, "-")}`,
+      type: 0,
+      position: ultimaPosicao,
+      permissionOverwrites: [
+        { id: guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
+        { id: membro.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] },
+        ...guild.roles.cache
+          .filter(r => r.permissions.has(PermissionsBitField.Flags.Administrator))
+          .map(r => ({
+            id: r.id,
+            allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages]
+          }))
+      ]
+    });
+
+// BOTÕES do painel interativo
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isButton()) return;
+
+  const { customId, member, channel } = interaction;
+
+  // Ver metas
+  if (customId === "painel_meta") {
+    const cargo = member.roles.cache.find(r => METAS[r.name]);
+    const meta = cargo ? METAS[cargo.name] : 1500;
+
+    db.get("SELECT * FROM metas WHERE user = ?", [member.id], (err, row) => {
+      if (!row) {
+        return interaction.reply({
+          content: `📊 Você ainda não começou sua meta! Faltam **${meta}**.`,
+          ephemeral: true
+        });
+      }
+      const falta = Math.max(0, meta - row.quantidade);
+      interaction.reply({
+        content: `📅 Sua meta semanal:\n- Cargo: ${cargo?.name || "Membro"}\n- Farmado: **${row.quantidade}**\n- Falta: **${falta}**`,
+        ephemeral: true
+      });
+    });
+  }
+
+  // Ranking
+  if (customId === "painel_ranking") {
+    db.all("SELECT * FROM metas ORDER BY quantidade DESC", [], (err, rows) => {
+      if (!rows.length) {
+        return interaction.reply({ content: "Ainda não há depósitos esta semana.", ephemeral: true });
+      }
+      const lista = rows
+        .map((r, i) => `${i + 1}. <@${r.user}> — **${r.quantidade}**`)
+        .join("\n");
+      interaction.reply({
+        embeds: [new EmbedBuilder().setTitle("🏆 Ranking Semanal").setDescription(lista).setColor("#FFD700")],
+        ephemeral: true
+      });
+    });
+  }
+
+  // Depositar farm
+  if (customId === "painel_depositar") {
+    const embed = new EmbedBuilder()
+      .setTitle("💰 Registrar Farm")
+      .setDescription("Envie uma mensagem **logo abaixo** deste embed com:\n\n1️⃣ A quantia farmada\n2️⃣ O print da tela como anexo\n\nExemplo: `1500` + anexo 📸")
+      .setColor("#00FF88");
+
+    await interaction.reply({ embeds: [embed], ephemeral: true });
+
+    const filter = m => m.author.id === member.id;
+    const collector = channel.createMessageCollector({ filter, time: 60000, max: 1 });
+
+    collector.on("collect", msg => {
+      const qtd = parseInt(msg.content.trim());
+      const anexo = msg.attachments.first();
+      if (isNaN(qtd) || !anexo) {
+        msg.reply("⚠️ Você precisa enviar um número e um print. Tente novamente usando o painel.");
+        return;
+      }
+
+      db.get("SELECT * FROM metas WHERE user = ?", [msg.author.id], (err, row) => {
+        const imagemURL = anexo.url;
+        if (row) {
+          db.run("UPDATE metas SET quantidade = ?, imagem = ? WHERE user = ?", [row.quantidade + qtd, imagemURL, msg.author.id]);
+        } else {
+          db.run("INSERT INTO metas (user, quantidade, imagem) VALUES (?, ?, ?)", [msg.author.id, qtd, imagemURL]);
+        }
+        msg.reply(`✅ Farm registrado com sucesso! +${qtd} adicionados.`);
+      });
+    });
+
+    collector.on("end", collected => {
+      if (!collected.size) interaction.followUp({ content: "⏰ Tempo esgotado! Use o painel novamente para tentar.", ephemeral: true });
+    });
+  }
 });
 
+    // Envia o painel dentro do canal criado
+    const embed = new EmbedBuilder()
+      .setTitle("🎯 Painel de Metas da Facção")
+      .setDescription("Escolha uma das opções abaixo para interagir com o sistema de metas:")
+      .addFields(
+        { name: "💰 Depositar farm", value: "Envie o valor e o print para registrar seu progresso." },
+        { name: "📊 Ver metas", value: "Veja quanto falta para bater sua meta semanal." },
+        { name: "🏆 Ranking", value: "Confira quem está no topo do ranking da semana." }
+      )
+      .setColor("#00FFFF");
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId("painel_depositar").setLabel("💰 Depositar Farm").setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId("painel_meta").setLabel("📊 Ver Meta").setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId("painel_ranking").setLabel("🏆 Ranking").setStyle(ButtonStyle.Secondary)
+    );
+
+    await canalPrivado.send({ embeds: [embed], components: [row] });
+
+    await interaction.reply({
+      content: `✅ Canal privado criado com sucesso: ${canalPrivado}`,
+      ephemeral: true
+    });
+  } catch (err) {
+    console.error("Erro ao criar canal privado:", err);
+    await interaction.reply({
+      content: "❌ Ocorreu um erro ao criar seu canal privado.",
+      ephemeral: true
+    });
+  }
+});
 
 // ======== FUNÇÕES AUXILIARES ========
 
@@ -204,5 +317,7 @@ function enviarRelatorioEMeta() {
     console.log("🔄 Metas resetadas após relatório semanal!");
   });
 }
+
+const config = require("./config.json");
 
 client.login(process.env.DISCORD_TOKEN);

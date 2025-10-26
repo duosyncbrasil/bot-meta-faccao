@@ -1,0 +1,10 @@
+git config --global user.name "duosyncbrasil"
+git config --global user.email "duosyncbrasil@gmail.com"
+
+git status
+
+git add .
+
+git commit -m "Alteração: Painel bau"
+
+git push origin main
