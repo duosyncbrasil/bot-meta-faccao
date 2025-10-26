@@ -35,3 +35,32 @@ git push origin main
 6️⃣ (Opcional) Crie um ping com UptimeRobot → seuURL.render.com/ (ping a cada 5min)
 
 ✅ Pronto! Seu bot fica online 24h, com painel interativo e ranking automático.
+
+
+
+
+
+💾 9️⃣ Atualizar o bot no futuro
+
+Quando quiser alterar o código:
+
+Faça mudanças locais
+
+Envie pro GitHub:
+
+git add .
+git commit -m "melhorias no painel"
+git push origin main
+
+
+O Render detecta o push e reimplanta automaticamente o bot.
+
+🧠 10️⃣ Dica de backup
+
+O banco meta.db do SQLite é salvo localmente e pode se perder em um reboot do Render (raro, mas possível).
+Se quiser 100% persistência:
+
+Use um banco SQLite remoto (como Railway.app
+)
+
+Ou ative um backup diário simples via cron (posso te gerar isso depois)

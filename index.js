@@ -202,10 +202,12 @@ client.on("interactionCreate", async (interaction) => {
     if (jaExiste) return interaction.reply({ content: "⚠️ Você já tem um canal privado criado.", ephemeral: true });
 
     try {
-      const canalPrivado = await guild.channels.create({
-        name: `privado-${nickname.toLowerCase().replace(/\s+/g, "-")}`,
-        type: 0,
-        position: guild.channels.cache.size,
+      const maxPosition = guild.channels.cache.reduce((max, c) => Math.max(max, c.position), 0);
+
+const canalPrivado = await guild.channels.create({
+  name: `privado-${nickname.toLowerCase().replace(/\s+/g, "-")}`,
+  type: 0,
+  position: maxPosition + 1, // cria depois de todos
         permissionOverwrites: [
           { id: guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
           { id: membro.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] },
