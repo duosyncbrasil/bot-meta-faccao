@@ -27,7 +27,9 @@ const express = require("express");
 const app = express();
 
 app.get("/", (req, res) => res.send("Bot da facção ativo! ✅"));
-app.listen(3000, () => console.log("🌐 Servidor web ativo para Render."));
+const PORT = process.env.PORT || 10000;
+
+app.listen(PORT, () => console.log(`🌐 Servidor web ativo na porta ${PORT}.`));
 
 let config = require("./config.json");
 
