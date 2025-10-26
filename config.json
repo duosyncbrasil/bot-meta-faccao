@@ -1,10 +1,7 @@
 {
-  "token": "process.env.DISCORD_TOKEN",
-  "prefix": "!",
   "canais": {
     "ranking": "1431389740736843857",
-    "resultado": "1431392854621552862",
-    "categoriaPrivadas": "1431389999999999999"
+    "resultado": "1431392854621552862"
   },
   "metas": {
     "Sub-líder": 500,

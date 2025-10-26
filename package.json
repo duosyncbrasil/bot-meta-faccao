@@ -1,16 +1,15 @@
 {
-  "name": "bot-meta-faccao",
+  "name": "bot-faccao",
   "version": "1.0.0",
-  "description": "Bot de metas semanais automatizado para facção no Discord (FiveM).",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "discord.js": "^14.16.3",
-    "dotenv": "^17.2.3",
-    "moment-timezone": "^0.5.46",
+    "discord.js": "^14.15.2",
+    "sqlite3": "^5.1.6",
+    "moment-timezone": "^0.5.45",
     "node-cron": "^3.0.3",
-    "sqlite3": "^5.1.7"
+    "express": "^4.21.1"
   }
 }

@@ -8,3 +8,30 @@ git add .
 git commit -m "Alteração: Painel bau"
 
 git push origin main
+
+📘 BOT FACÇÃO — Guia de Instalação Render
+
+1️⃣ Instale dependências localmente:
+   npm install
+
+2️⃣ Crie repositório GitHub e envie todos os arquivos.
+
+3️⃣ No Render:
+   - Clique em "New" → "Web Service"
+   - Conecte ao seu repositório
+   - Configure:
+       Build Command: npm install
+       Start Command: npm start
+       Environment: Node
+       Free Plan ✅
+
+4️⃣ Vá em Settings → Environment → Add Environment Variable:
+       Key: DISCORD_TOKEN
+       Value: <seu token do Discord>
+
+5️⃣ Deploy e aguarde:
+   Logs → “✅ Logado como SeuBot#1234”
+
+6️⃣ (Opcional) Crie um ping com UptimeRobot → seuURL.render.com/ (ping a cada 5min)
+
+✅ Pronto! Seu bot fica online 24h, com painel interativo e ranking automático.
