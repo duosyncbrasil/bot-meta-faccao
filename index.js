@@ -1,6 +1,6 @@
 // ============================================
 // 🤖 BOT FACÇÃO PRO — Sistema de Metas, Painéis e Configuração
-// Pronto para Render
+// Versão final para Render
 // ============================================
 
 const {
@@ -21,22 +21,23 @@ const sqlite3 = require("sqlite3").verbose();
 const cron = require("node-cron");
 const express = require("express");
 
+const config = require("./config.json");
+
 // ------------------- SERVIDOR HTTP (Render) -------------------
 const app = express();
 const PORT = process.env.PORT || 10000;
 
 app.get("/", (req, res) => res.send("Bot da facção ativo! ✅"));
 
-// Inicia o Express **antes do bot** para garantir que Render detecte a porta
 app.listen(PORT, () => {
-  console.log(`🌐 Servidor web ativo na porta ${PORT}.`);
-  startBot();
+  console.log(`🌐 Servidor HTTP ativo na porta ${PORT}`);
+  startBot(); // inicia o bot somente após porta aberta
 });
 
 // ------------------- INICIALIZAÇÃO DO BOT -------------------
 function startBot() {
-  const config = require("./config.json");
   const db = new sqlite3.Database("./meta.db");
+  db.run("CREATE TABLE IF NOT EXISTS metas (user TEXT, quantidade INTEGER, imagem TEXT)");
 
   const client = new Client({
     intents: [
@@ -46,8 +47,6 @@ function startBot() {
       GatewayIntentBits.GuildMembers,
     ],
   });
-
-  db.run("CREATE TABLE IF NOT EXISTS metas (user TEXT, quantidade INTEGER, imagem TEXT)");
 
   client.once("ready", async () => {
     console.log(`✅ Logado como ${client.user.tag}`);
@@ -77,7 +76,6 @@ function startBot() {
     if (interaction.isChatInputCommand()) {
       const { commandName, member, channel } = interaction;
 
-      // /ajuda
       if (commandName === "ajuda") {
         const embed = new EmbedBuilder()
           .setTitle("📘 Central de Ajuda — Sistema de Metas da Facção")
@@ -91,7 +89,6 @@ function startBot() {
         await interaction.reply({ embeds: [embed], ephemeral: true });
       }
 
-      // /painel
       if (commandName === "painel") {
         const embed = new EmbedBuilder()
           .setTitle("🎯 Painel de Metas da Facção")
@@ -106,7 +103,6 @@ function startBot() {
         await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
       }
 
-      // /meta
       if (commandName === "meta") {
         const cargo = member.roles.cache.find(r => config.metas[r.name]);
         const meta = cargo ? config.metas[cargo.name] : 1500;
@@ -121,13 +117,11 @@ function startBot() {
         });
       }
 
-      // /ranking
       if (commandName === "ranking") {
         enviarRanking(interaction.channel);
         interaction.reply({ content: "🏆 Ranking enviado no canal!", ephemeral: true });
       }
 
-      // /depositar
       if (commandName === "depositar") {
         const embed = new EmbedBuilder()
           .setTitle("💰 Registrar Farm")
@@ -156,7 +150,6 @@ function startBot() {
         });
       }
 
-      // /config
       if (commandName === "config") {
         if (!member.permissions.has(PermissionsBitField.Flags.Administrator))
           return interaction.reply({ content: "❌ Apenas administradores podem usar este comando.", ephemeral: true });
@@ -283,6 +276,4 @@ function startBot() {
       console.log("🔄 Metas resetadas.");
     });
   }
-
-  client.login(process.env.DISCORD_TOKEN);
 }
