@@ -28,7 +28,6 @@ const app = express();
 
 app.get("/", (req, res) => res.send("Bot da facção ativo! ✅"));
 const PORT = process.env.PORT || 10000;
-
 app.listen(PORT, () => console.log(`🌐 Servidor web ativo na porta ${PORT}.`));
 
 let config = require("./config.json");
@@ -287,5 +286,29 @@ function enviarRelatorioEMeta() {
     console.log("🔄 Metas resetadas.");
   });
 }
+
+const express = require("express");
+const app = express();
+
+app.get("/", (req, res) => res.send("Bot da facção ativo! ✅"));
+
+// PORT definido pelo Render
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`🌐 Servidor web ativo na porta ${PORT}.`));
+
+// ===================== Discord =====================
+const { Client, GatewayIntentBits } = require("discord.js");
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
+  ],
+});
+
+client.once("ready", () => {
+  console.log(`✅ Logado como ${client.user.tag}`);
+});
 
 client.login(process.env.DISCORD_TOKEN);
