@@ -17,4 +17,9 @@
   },
   "author": "Guedes",
   "license": "MIT"
+},
+"scripts": {
+  "start": "node index.js",
+  "build": "echo 'Build concluído'"
 }
+
