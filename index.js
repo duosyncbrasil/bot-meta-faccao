@@ -52,7 +52,7 @@ const client = new Client({
 });
 
 // ====== Registro de comandos ======
-client.once("ready", async () => {
+client.once("clientReady", async () => {
   console.log(`[BOT] ✅ Logado como ${client.user.tag}`);
 
   const commands = [
