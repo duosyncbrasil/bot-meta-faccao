@@ -29,6 +29,9 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () =>
   console.log(`[WEB] 🌐 Servidor HTTP ativo na porta ${PORT}`)
 );
+setInterval(() => {
+  fetch(`http://localhost:${PORT}`).catch(() => {});
+}, 60000);
 
 // ====== Configurações ======
 const config = require("./config.json");
